@@ -115,6 +115,13 @@ if (!$conn->connect_error) {
             $conn->query($alterSql);
         }
         
+        // Check if payment_status column exists, add if missing
+        $checkColumn = $conn->query("SHOW COLUMNS FROM `orders` LIKE 'payment_status'");
+        if (!$checkColumn || $checkColumn->num_rows == 0) {
+            $alterSql = "ALTER TABLE `orders` ADD COLUMN `payment_status` enum('pending','completed') DEFAULT 'pending'";
+            $conn->query($alterSql);
+        }
+        
         // Check if customer_id exists, rename from user_id if needed
         $checkColumn = $conn->query("SHOW COLUMNS FROM `orders` LIKE 'customer_id'");
         if (!$checkColumn || $checkColumn->num_rows == 0) {

@@ -218,11 +218,18 @@ $orders = $stmt->get_result();
                                     <span class="order-status status-<?php echo $order['status']; ?>">
                                         <?php echo ucfirst($order['status']); ?>
                                     </span>
+                                    <?php if (isset($order['payment_status'])): ?>
+                                        <span class="order-status <?php echo ($order['payment_status'] === 'completed' ? 'status-completed' : 'status-pending'); ?>" style="background: <?php echo ($order['payment_status'] === 'completed' ? '#d4edda' : '#fff3cd'); ?>; color: <?php echo ($order['payment_status'] === 'completed' ? '#155724' : '#856404'); ?>;">
+                                            <?php echo $order['payment_status'] === 'completed' ? '✓ Paid' : '⏳ Payment Pending'; ?>
+                                        </span>
+                                    <?php endif; ?>
                                     <?php if ($order['status'] === 'pending'): ?>
                                         <form method="POST" action="cancel_order.php" style="margin: 0;">
                                             <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">
                                             <button type="submit" class="btn-cancel" onclick="return confirm('Are you sure you want to cancel this order?');"><i class="fas fa-times"></i> Cancel</button>
                                         </form>
+                                    <?php elseif ($order['status'] === 'confirmed' && (isset($order['payment_status']) && $order['payment_status'] === 'pending')): ?>
+                                        <a href="payment.php?order_id=<?php echo $order['id']; ?>" class="btn-cancel" style="background: var(--primary); color: white;"><i class="fas fa-credit-card"></i> Pay Now</a>
                                     <?php endif; ?>
                                 </div>
                             </div>
