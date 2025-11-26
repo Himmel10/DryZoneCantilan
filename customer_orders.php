@@ -215,14 +215,20 @@ $orders = $stmt->get_result();
                                     </div>
                                 </div>
                                 <div style="display: flex; gap: 10px; align-items: flex-start;">
-                                    <span class="order-status status-<?php echo $order['status']; ?>">
-                                        <?php echo ucfirst($order['status']); ?>
-                                    </span>
-                                    <?php if (isset($order['payment_status'])): ?>
-                                        <span class="order-status <?php echo ($order['payment_status'] === 'completed' ? 'status-completed' : 'status-pending'); ?>" style="background: <?php echo ($order['payment_status'] === 'completed' ? '#d4edda' : '#fff3cd'); ?>; color: <?php echo ($order['payment_status'] === 'completed' ? '#155724' : '#856404'); ?>;">
-                                            <?php echo $order['payment_status'] === 'completed' ? '✓ Paid' : '⏳ Payment Pending'; ?>
-                                        </span>
-                                    <?php endif; ?>
+                                    <?php 
+                                        // Show appropriate status based on order and payment status
+                                        if ($order['status'] === 'pending') {
+                                            echo '<span class="order-status status-pending">⏳ Awaiting Confirmation</span>';
+                                        } elseif ($order['status'] === 'confirmed') {
+                                            if (isset($order['payment_status']) && $order['payment_status'] === 'pending') {
+                                                echo '<span class="order-status" style="background: #fff3cd; color: #856404;">⏳ Payment Pending</span>';
+                                            } else {
+                                                echo '<span class="order-status status-confirmed">✓ Confirmed & Paid</span>';
+                                            }
+                                        } else {
+                                            echo '<span class="order-status status-' . $order['status'] . '">' . ucfirst($order['status']) . '</span>';
+                                        }
+                                    ?>
                                     <?php if ($order['status'] === 'pending'): ?>
                                         <form method="POST" action="cancel_order.php" style="margin: 0;">
                                             <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">

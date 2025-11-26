@@ -46,7 +46,7 @@ $revenueData = $revenueResult->fetch_assoc();
 $totalRevenue = $revenueData['revenue'] ?? 0;
 
 // Get recent orders
-$recentQuery = "SELECT id, service_type, total_amount, status, created_at FROM orders WHERE shop_name = ? ORDER BY created_at DESC LIMIT 10";
+$recentQuery = "SELECT id, customer_name, service_type, total_amount, status, created_at FROM orders WHERE shop_name = ? ORDER BY created_at DESC LIMIT 10";
 $recentStmt = $conn->prepare($recentQuery);
 $recentStmt->bind_param("s", $sellerName);
 $recentStmt->execute();
@@ -329,25 +329,49 @@ $recentOrders = $recentResult->fetch_all(MYSQLI_ASSOC);
 
             <div class="content-section">
                 <h2><i class="fas fa-shopping-bag"></i> Recent Orders</h2>
+                <div style="margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+                    <input type="text" id="searchInput" placeholder="Search by order ID or service..." style="flex: 1; min-width: 200px; padding: 10px; border: 2px solid #e4eef1; border-radius: 8px;">
+                    <select id="statusFilter" style="padding: 10px; border: 2px solid #e4eef1; border-radius: 8px;">
+                        <option value="">All Status</option>
+                        <option value="pending">Pending</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="processing">Processing</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
                 <?php if (count($recentOrders) > 0): ?>
                     <table class="orders-table">
                         <thead>
                             <tr>
                                 <th>Order ID</th>
+                                <th>Customer</th>
                                 <th>Service Type</th>
                                 <th>Amount</th>
                                 <th>Status</th>
                                 <th>Date</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php foreach ($recentOrders as $order): ?>
                                 <tr>
                                     <td class="order-id">Order #<?php echo str_pad($order['id'], 6, '0', STR_PAD_LEFT); ?></td>
+                                    <td><?php echo htmlspecialchars($order['customer_name'] ?? 'N/A'); ?></td>
                                     <td><?php echo htmlspecialchars($order['service_type']); ?></td>
                                     <td>₱<?php echo number_format($order['total_amount'], 2); ?></td>
                                     <td><span class="status-badge status-<?php echo $order['status']; ?>"><?php echo ucfirst($order['status']); ?></span></td>
                                     <td><?php echo date('M d, Y', strtotime($order['created_at'])); ?></td>
+                                    <td>
+                                        <?php if ($order['status'] === 'pending'): ?>
+                                            <button class="btn-action" onclick="confirmOrder(<?php echo $order['id']; ?>)" style="background: #10b981; color: white; padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">Confirm</button>
+                                        <?php elseif ($order['status'] === 'confirmed'): ?>
+                                            <button class="btn-action" onclick="updateStatus(<?php echo $order['id']; ?>, 'processing')" style="background: #3b82f6; color: white; padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">Processing</button>
+                                        <?php elseif ($order['status'] === 'processing'): ?>
+                                            <button class="btn-action" onclick="updateStatus(<?php echo $order['id']; ?>, 'completed')" style="background: #8b5cf6; color: white; padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">Complete</button>
+                                        <?php endif; ?>
+                                        <button class="btn-action" onclick="viewDetails(<?php echo $order['id']; ?>)" style="background: #6b7280; color: white; padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">Details</button>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -360,8 +384,120 @@ $recentOrders = $recentResult->fetch_all(MYSQLI_ASSOC);
                     </div>
                 <?php endif; ?>
             </div>
+
+            <div class="content-section">
+                <h2><i class="fas fa-chart-bar"></i> Performance Analytics</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                    <div style="background: #f0f9ff; padding: 20px; border-radius: 12px; border-left: 4px solid #3b82f6;">
+                        <p style="margin: 0 0 10px 0; color: #666; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Today's Orders</p>
+                        <p style="margin: 0; color: #3b82f6; font-size: 1.8rem; font-weight: 700;">
+                            <?php 
+                                $todayQuery = "SELECT COUNT(*) as count FROM orders WHERE shop_name = ? AND DATE(created_at) = CURDATE()";
+                                $todayStmt = $conn->prepare($todayQuery);
+                                $todayStmt->bind_param("s", $sellerName);
+                                $todayStmt->execute();
+                                $todayResult = $todayStmt->get_result();
+                                $todayData = $todayResult->fetch_assoc();
+                                echo $todayData['count'] ?? 0;
+                            ?>
+                        </p>
+                    </div>
+                    <div style="background: #f0fdf4; padding: 20px; border-radius: 12px; border-left: 4px solid #10b981;">
+                        <p style="margin: 0 0 10px 0; color: #666; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">This Week</p>
+                        <p style="margin: 0; color: #10b981; font-size: 1.8rem; font-weight: 700;">
+                            <?php 
+                                $weekQuery = "SELECT COUNT(*) as count FROM orders WHERE shop_name = ? AND WEEK(created_at) = WEEK(NOW())";
+                                $weekStmt = $conn->prepare($weekQuery);
+                                $weekStmt->bind_param("s", $sellerName);
+                                $weekStmt->execute();
+                                $weekResult = $weekStmt->get_result();
+                                $weekData = $weekResult->fetch_assoc();
+                                echo $weekData['count'] ?? 0;
+                            ?>
+                        </p>
+                    </div>
+                    <div style="background: #fef3c7; padding: 20px; border-radius: 12px; border-left: 4px solid #f59e0b;">
+                        <p style="margin: 0 0 10px 0; color: #666; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Avg Rating</p>
+                        <p style="margin: 0; color: #f59e0b; font-size: 1.8rem; font-weight: 700;">
+                            <?php 
+                                $ratingQuery = "SELECT AVG(rating) as avg_rating FROM reviews WHERE shop_name = ?";
+                                $ratingStmt = $conn->prepare($ratingQuery);
+                                $ratingStmt->bind_param("s", $sellerName);
+                                $ratingStmt->execute();
+                                $ratingResult = $ratingStmt->get_result();
+                                $ratingData = $ratingResult->fetch_assoc();
+                                echo number_format($ratingData['avg_rating'] ?? 0, 1);
+                            ?>
+                            <i class="fas fa-star" style="color: #f59e0b; font-size: 1rem;"></i>
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-</body>
-</html>
+
+    <script>
+        function confirmOrder(orderId) {
+            if (confirm('Are you sure you want to confirm this order?')) {
+                updateOrderStatus(orderId, 'confirmed');
+            }
+        }
+
+        function updateStatus(orderId, status) {
+            const statusText = status === 'processing' ? 'Mark as Processing' : 'Mark as Completed';
+            if (confirm(`Are you sure you want to ${statusText}?`)) {
+                updateOrderStatus(orderId, status);
+            }
+        }
+
+        function updateOrderStatus(orderId, status) {
+            fetch('../modules/update_order_status.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `order_id=${orderId}&status=${status}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Order status updated successfully!');
+                    location.reload();
+                } else {
+                    alert('Error updating order: ' + data.message);
+                }
+            })
+            .catch(error => alert('Error: ' + error.message));
+        }
+
+        function viewDetails(orderId) {
+            // In production, this would open an order details modal or page
+            alert('Order #' + String(orderId).padStart(6, '0') + ' details would open here');
+        }
+
+        // Search and filter functionality
+        document.getElementById('searchInput')?.addEventListener('input', function() {
+            filterOrders();
+        });
+        document.getElementById('statusFilter')?.addEventListener('change', function() {
+            filterOrders();
+        });
+
+        function filterOrders() {
+            const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
+            const statusFilter = document.getElementById('statusFilter')?.value || '';
+            const rows = document.querySelectorAll('.orders-table tbody tr');
+
+            rows.forEach(row => {
+                const orderId = row.cells[0]?.textContent.toLowerCase() || '';
+                const service = row.cells[2]?.textContent.toLowerCase() || '';
+                const status = row.cells[4]?.textContent.toLowerCase() || '';
+
+                const matchesSearch = orderId.includes(searchTerm) || service.includes(searchTerm);
+                const matchesStatus = !statusFilter || status.includes(statusFilter);
+
+                row.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
+            });
+        }
+    </script>
 
