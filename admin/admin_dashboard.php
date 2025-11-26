@@ -2,13 +2,11 @@
 session_start();
 require '../db.php';
 
-// Check if user is logged in and is admin
 if (!isset($_SESSION['user_email']) || $_SESSION['user_role'] !== 'admin') {
     header('Location: ../login.php');
     exit();
 }
 
-// Get system statistics for maintenance
 $totalUsers = $conn->query("SELECT COUNT(*) as count FROM users")->fetch_assoc()['count'];
 $totalSellers = $conn->query("SELECT COUNT(*) as count FROM users WHERE role = 'seller'")->fetch_assoc()['count'];
 $totalCustomers = $conn->query("SELECT COUNT(*) as count FROM users WHERE role = 'customer'")->fetch_assoc()['count'];
@@ -16,13 +14,10 @@ $totalOrders = $conn->query("SELECT COUNT(*) as count FROM orders")->fetch_assoc
 $totalRevenue = $conn->query("SELECT SUM(total_amount) as revenue FROM orders WHERE status = 'completed'")->fetch_assoc()['revenue'] ?? 0;
 $pendingOrders = $conn->query("SELECT COUNT(*) as count FROM orders WHERE status = 'pending'")->fetch_assoc()['count'];
 
-// Get recently registered users
 $recentUsers = $conn->query("SELECT id, full_name, email, role, created_at FROM users ORDER BY created_at DESC LIMIT 10");
 
-// Get system issues/flagged orders
 $flaggedOrders = $conn->query("SELECT id, shop_name, customer_id, status, created_at FROM orders WHERE status = 'cancelled' OR status = 'pending' ORDER BY created_at DESC LIMIT 8");
 
-// Get seller activity (registration trend)
 $activeSellers = $conn->query("SELECT COUNT(*) as count FROM users WHERE role = 'seller' AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)")->fetch_assoc()['count'];
 $newUsers = $conn->query("SELECT COUNT(*) as count FROM users WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)")->fetch_assoc()['count'];
 ?>

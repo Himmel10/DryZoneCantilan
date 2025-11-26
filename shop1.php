@@ -31,7 +31,7 @@ include 'header.php';
             <div class="shop-info"><i class="fas fa-map-marker-alt"></i> Poblacion, Cantilan</div>
             <div class="shop-info"><i class="fas fa-star rating"></i> 4.8 (124 reviews)</div>
             <div class="shop-desc">
-                <p>Complete laundry services with free pickup and delivery within Poblacion area. Fast, reliable, and clean!</p>
+                <p>Complete laundry services with rider pickup & delivery. Our delivery riders will pick up your laundry and deliver it back after processing. Fast, reliable, and quality-assured service.</p>
             </div>
             <div class="shop-extra">
                 <span><b>Daily Orders:</b> ~54 customers</span>
@@ -59,7 +59,7 @@ include 'header.php';
                 </div>
                 <div class="service-features">
                     <small>✓ Fast & reliable</small><br>
-                    <small>✓ Free pickup/delivery</small>
+                    <small>✓ Pickup & Delivery Available</small>
                 </div>
                 <button class="add-to-cart-btn" onclick="addToCart('Wash & Fold', 'Daily BubbleBox Laundry Hub', 28)">
                     <i class="fas fa-shopping-cart"></i> Add to Cart

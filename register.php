@@ -1,7 +1,6 @@
 <?php
 session_start();
 
-// If already logged in, redirect based on role
 if (isset($_SESSION['user_email'])) {
     $role = isset($_SESSION['user_role']) ? $_SESSION['user_role'] : 'customer';
     if ($role === 'admin') {

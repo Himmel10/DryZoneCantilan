@@ -6,13 +6,11 @@ if (session_status() === PHP_SESSION_NONE) {
 include 'header.php';
 require 'db.php';
 
-// Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit();
 }
 
-// Get cart items
 if (!isset($_SESSION['cart']) || empty($_SESSION['cart'])) {
     header('Location: modules/cart.php');
     exit();
@@ -25,11 +23,9 @@ foreach ($cartItems as $item) {
     $subtotal += $item['price'] * $item['quantity'];
 }
 
-// Auto delivery fee logic
-$deliveryFee = $subtotal >= 300 ? 0 : 50;
+$deliveryFee = 50; // Fixed delivery fee - supports rider income and platform
 $totalAmount = $subtotal + $deliveryFee;
 
-// Get user info if logged in
 $userName = '';
 $userEmail = '';
 $userPhone = '';
@@ -39,7 +35,7 @@ if (isset($_SESSION['user_id'])) {
         $user = $result->fetch_assoc();
         $userName = $user['full_name'] ?? '';
         $userEmail = $user['email'] ?? '';
-        $userPhone = ''; // Phone not stored in users table
+        $userPhone = '';
     }
 }
 ?>
@@ -259,22 +255,14 @@ if (isset($_SESSION['user_id'])) {
                 </div>
             </div>
 
-            <!-- Delivery Options -->
+            <!-- Pickup & Delivery Information -->
             <div class="form-section">
-                <h3><i class="fas fa-truck"></i> Delivery Option</h3>
-                
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                    <label style="border: 2px solid #e9ecef; border-radius: 5px; padding: 15px; cursor: pointer; text-align: center; transition: all 0.2s;">
-                        <input type="radio" name="delivery_option" value="pickup" checked style="margin-right: 8px;">
-                        <strong style="color: var(--primary);">Pickup</strong><br>
-                        <small style="color: #666;">FREE</small>
-                    </label>
-                    <label style="border: 2px solid #e9ecef; border-radius: 5px; padding: 15px; cursor: pointer; text-align: center; transition: all 0.2s;">
-                        <input type="radio" name="delivery_option" value="delivery" style="margin-right: 8px;">
-                        <strong style="color: var(--primary);">Delivery</strong><br>
-                        <small style="color: #666;">₱50 (FREE if ≥₱300)</small>
-                    </label>
+                <h3><i class="fas fa-dolly"></i> Pickup & Delivery Service</h3>
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+                    <p style="margin: 0; font-size: 1rem; font-weight: 500;"><i class="fas fa-check-circle"></i> Rider picks up & delivers: <strong>₱50</strong></p>
                 </div>
+                <p style="color: #666; font-size: 0.95rem; margin: 0;"><i class="fas fa-info-circle"></i> Our rider will pick up your laundry and deliver it back after processing</p>
+                <input type="hidden" name="delivery_option" value="pickup_delivery">
             </div>
 
             <!-- Special Instructions -->
@@ -283,6 +271,35 @@ if (isset($_SESSION['user_id'])) {
                 
                 <div class="form-group">
                     <textarea id="specialInstructions" name="specialInstructions" placeholder="Any special care instructions..." rows="2"></textarea>
+                </div>
+            </div>
+
+            <!-- Payment Method -->
+            <div class="form-section">
+                <h3><i class="fas fa-credit-card"></i> Payment Method</h3>
+                <p style="color: #666; margin-bottom: 15px; font-size: 0.95rem;"><i class="fas fa-info-circle"></i> Pay after service provider confirms your order</p>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <label style="border: 2px solid #e9ecef; border-radius: 5px; padding: 12px; cursor: pointer; text-align: center; transition: all 0.2s;">
+                        <input type="radio" name="payment_method" value="gcash" checked style="margin-right: 5px;">
+                        <i class="fas fa-mobile-alt" style="font-size: 1.5rem; color: #667eea; display: block; margin-bottom: 5px;"></i>
+                        <strong style="color: var(--primary);">GCash</strong>
+                    </label>
+                    <label style="border: 2px solid #e9ecef; border-radius: 5px; padding: 12px; cursor: pointer; text-align: center; transition: all 0.2s;">
+                        <input type="radio" name="payment_method" value="paymaya" style="margin-right: 5px;">
+                        <i class="fas fa-wallet" style="font-size: 1.5rem; color: #667eea; display: block; margin-bottom: 5px;"></i>
+                        <strong style="color: var(--primary);">PayMaya</strong>
+                    </label>
+                    <label style="border: 2px solid #e9ecef; border-radius: 5px; padding: 12px; cursor: pointer; text-align: center; transition: all 0.2s;">
+                        <input type="radio" name="payment_method" value="online_banking" style="margin-right: 5px;">
+                        <i class="fas fa-university" style="font-size: 1.5rem; color: #667eea; display: block; margin-bottom: 5px;"></i>
+                        <strong style="color: var(--primary);">Online Banking</strong>
+                    </label>
+                    <label style="border: 2px solid #e9ecef; border-radius: 5px; padding: 12px; cursor: pointer; text-align: center; transition: all 0.2s;">
+                        <input type="radio" name="payment_method" value="cod" style="margin-right: 5px;">
+                        <i class="fas fa-money-bill-wave" style="font-size: 1.5rem; color: #667eea; display: block; margin-bottom: 5px;"></i>
+                        <strong style="color: var(--primary);">Cash on Delivery</strong>
+                    </label>
                 </div>
             </div>
 
@@ -337,18 +354,8 @@ if (isset($_SESSION['user_id'])) {
 
 <script>
     const subtotal = <?php echo $subtotal; ?>;
-    const deliveryOptionRadios = document.querySelectorAll('input[name="delivery_option"]');
-
-    deliveryOptionRadios.forEach(radio => {
-        radio.addEventListener('change', function() {
-            const deliveryFee = this.value === 'delivery' ? (subtotal >= 300 ? 0 : 50) : 0;
-            const total = subtotal + deliveryFee;
-            
-            document.getElementById('deliveryFeeDisplay').textContent = '₱' + deliveryFee.toFixed(2);
-            document.getElementById('totalDisplay').textContent = '₱' + total.toFixed(2);
-        });
-    });
-
+    const mandatoryPickupDeliveryFee = 50; // Rider picks up & delivers (like eatagaylo model)
+    
     // Confirmation is now handled by js/auth.js
 </script>
 

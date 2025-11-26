@@ -64,7 +64,7 @@ if (session_status() === PHP_SESSION_NONE) {
                         <i class="fas fa-map-marker-alt"></i>
                         <span>Poblacion, Cantilan</span>
                     </div>
-                    <p>Complete laundry services with free pickup and delivery within Poblacion area.</p>
+                    <p>Complete laundry services with rider pickup & delivery. Our delivery riders will pick up your laundry and deliver it back after processing.</p>
                     <a href="shop1.php" class="btn">View Details</a>
                 </div>
             </div>

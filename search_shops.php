@@ -3,7 +3,6 @@ header('Content-Type: application/json');
 
 require 'db.php';
 
-// Get filter parameters
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $min_price = isset($_GET['min_price']) ? (float)$_GET['min_price'] : 0;
 $max_price = isset($_GET['max_price']) ? (float)$_GET['max_price'] : 10000;
@@ -12,13 +11,11 @@ $service_type = isset($_GET['service']) ? trim($_GET['service']) : '';
 $location = isset($_GET['location']) ? trim($_GET['location']) : '';
 $sort_by = isset($_GET['sort']) ? trim($_GET['sort']) : 'rating'; // rating, price, name
 
-// Validate sort parameter
 $valid_sorts = ['rating', 'price_asc', 'price_desc', 'name', 'popular'];
 if (!in_array($sort_by, $valid_sorts)) {
     $sort_by = 'rating';
 }
 
-// Base query
 $query = "SELECT 
     shop_name, 
     location, 
@@ -34,7 +31,6 @@ WHERE 1=1";
 $params = [];
 $types = '';
 
-// Add search filter (by name or location)
 if (!empty($search)) {
     $search_term = "%$search%";
     $query .= " AND (shop_name LIKE ? OR location LIKE ? OR description LIKE ?)";
@@ -44,34 +40,29 @@ if (!empty($search)) {
     $types .= 'sss';
 }
 
-// Add service type filter
 if (!empty($service_type)) {
     $query .= " AND primary_service LIKE ?";
     $params[] = "%$service_type%";
     $types .= 's';
 }
 
-// Add location filter
 if (!empty($location)) {
     $query .= " AND location LIKE ?";
     $params[] = "%$location%";
     $types .= 's';
 }
 
-// Add rating filter
 if ($min_rating > 0) {
     $query .= " AND rating >= ?";
     $params[] = $min_rating;
     $types .= 'd';
 }
 
-// Add price filter
 $query .= " AND avg_price BETWEEN ? AND ?";
 $params[] = $min_price;
 $params[] = $max_price;
 $types .= 'dd';
 
-// Add sorting
 $order_map = [
     'rating' => 'ORDER BY rating DESC, num_reviews DESC',
     'price_asc' => 'ORDER BY avg_price ASC',
@@ -83,7 +74,6 @@ $order_map = [
 $query .= ' ' . $order_map[$sort_by];
 $query .= ' LIMIT 50';
 
-// Execute query
 $stmt = $conn->prepare($query);
 
 if ($params && $types) {

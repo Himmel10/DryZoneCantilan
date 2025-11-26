@@ -11,7 +11,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'])) {
     $order_id = $_POST['order_id'];
     $user_id = $_SESSION['user_id'];
     
-    // Verify order belongs to user and is pending
     $checkQuery = "SELECT id, status FROM orders WHERE id = ? AND customer_id = ? AND status = 'pending'";
     $checkStmt = $conn->prepare($checkQuery);
     $checkStmt->bind_param("ii", $order_id, $user_id);
@@ -19,7 +18,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'])) {
     $result = $checkStmt->get_result();
     
     if ($result->num_rows > 0) {
-        // Update order status to cancelled
         $cancelQuery = "UPDATE orders SET status = 'cancelled' WHERE id = ?";
         $cancelStmt = $conn->prepare($cancelQuery);
         $cancelStmt->bind_param("i", $order_id);

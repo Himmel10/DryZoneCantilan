@@ -18,7 +18,6 @@ if ($action === 'add') {
     $quantity = intval($_POST['quantity'] ?? 1);
 
     if ($service && $shop && $price > 0 && $quantity > 0) {
-        // Check if service already in cart
         $found = false;
         foreach ($_SESSION['cart'] as &$item) {
             if ($item['service'] === $service && $item['shop'] === $shop) {
@@ -28,7 +27,6 @@ if ($action === 'add') {
             }
         }
 
-        // Add new item if not found
         if (!$found) {
             $_SESSION['cart'][] = [
                 'service' => $service,
