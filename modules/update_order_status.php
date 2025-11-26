@@ -3,7 +3,7 @@ header('Content-Type: application/json');
 session_start();
 require '../db.php';
 
-if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['seller', 'admin'])) {
+if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'seller') {
     echo json_encode(['success' => false, 'message' => 'Unauthorized']);
     exit;
 }
@@ -15,16 +15,16 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $order_id = (int)($_POST['order_id'] ?? 0);
 $new_status = $_POST['status'] ?? '';
-$notes = $_POST['notes'] ?? '';
+$sellerName = $_SESSION['user_name'];
 
-$valid_statuses = ['pending', 'processing', 'ready', 'delivered', 'cancelled'];
+$valid_statuses = ['pending', 'confirmed', 'processing', 'completed', 'cancelled'];
 if (!in_array($new_status, $valid_statuses)) {
     echo json_encode(['success' => false, 'message' => 'Invalid status']);
     exit;
 }
 
-$stmt = $conn->prepare("SELECT status FROM orders WHERE id = ?");
-$stmt->bind_param("i", $order_id);
+$stmt = $conn->prepare("SELECT status FROM orders WHERE id = ? AND shop_name = ?");
+$stmt->bind_param("is", $order_id, $sellerName);
 $stmt->execute();
 $result = $stmt->get_result();
 $order = $result->fetch_assoc();
@@ -41,10 +41,10 @@ $update_stmt = $conn->prepare("
     UPDATE orders 
     SET status = ?,
         updated_at = CURRENT_TIMESTAMP
-    WHERE id = ?
+    WHERE id = ? AND shop_name = ?
 ");
 
-$update_stmt->bind_param("si", $new_status, $order_id);
+$update_stmt->bind_param("sis", $new_status, $order_id, $sellerName);
 
 if (!$update_stmt->execute()) {
     echo json_encode(['success' => false, 'message' => 'Failed to update order: ' . $update_stmt->error]);

@@ -8,7 +8,7 @@ if (!isset($_SESSION['user_email']) || $_SESSION['user_role'] !== 'seller') {
 }
 
 $sellerId = $_SESSION['user_id'];
-$sellerName = $_SESSION['user_name'];
+$sellerName = "Daily BubbleBox Laundry Hub"; // Shop1 owner
 
 $ordersQuery = "SELECT COUNT(*) as total FROM orders WHERE shop_name = ?";
 $ordersStmt = $conn->prepare($ordersQuery);
@@ -295,10 +295,11 @@ $recentOrders = $recentResult->fetch_all(MYSQLI_ASSOC);
         <div class="container">
             <div class="dashboard-header">
                 <div>
-                    <h1><i class="fas fa-store"></i> Service Provider Dashboard</h1>
-                    <p>Welcome, <?php echo htmlspecialchars($sellerName); ?>!</p>
+                    <h1><i class="fas fa-store"></i> Daily BubbleBox Laundry Hub - Dashboard</h1>
+                    <p>Welcome, Shop Owner! | Poblacion, Cantilan</p>
                 </div>
                 <div class="dashboard-actions">
+                    <a href="../shop1.php" class="btn"><i class="fas fa-eye"></i> View Shop</a>
                     <a href="../index.php" class="btn"><i class="fas fa-home"></i> Home</a>
                     <a href="../logout.php" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
                 </div>
@@ -324,6 +325,45 @@ $recentOrders = $recentResult->fetch_all(MYSQLI_ASSOC);
                     <div class="stat-icon"><i class="fas fa-peso-sign"></i></div>
                     <p class="stat-label">Total Revenue</p>
                     <p class="stat-value">₱<?php echo number_format($totalRevenue, 2); ?></p>
+                </div>
+            </div>
+
+            <div class="content-section" style="background: linear-gradient(135deg, #d1fae5 0%, #ecfdf5 100%); border-left: 4px solid #10b981;">
+                <h2><i class="fas fa-check-circle" style="color: #10b981;"></i> Recently Confirmed Order</h2>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px; background: white; border-radius: 12px; margin-bottom: 20px;">
+                    <div>
+                        <h3 style="margin: 0 0 15px 0; color: var(--primary);">Order Details</h3>
+                        <div style="line-height: 1.8;">
+                            <p><strong>Order ID:</strong> #000020</p>
+                            <p><strong>Customer:</strong> Maria Santos</p>
+                            <p><strong>Status:</strong> <span class="status-badge" style="background: #d1fae5; color: #065f46;">✓ Confirmed</span></p>
+                            <p><strong>Services:</strong> Wash & Fold (3kg)</p>
+                            <p><strong>Amount:</strong> ₱134.00</p>
+                            <p><strong>Payment:</strong> GCash (Payment Pending)</p>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 style="margin: 0 0 15px 0; color: var(--primary);">Delivery Details</h3>
+                        <div style="line-height: 1.8;">
+                            <p><strong>Address:</strong> 123 Poblacion St., Cantilan, Surigao del Sur</p>
+                            <p><strong>Phone:</strong> 09171234567</p>
+                            <p><strong>Pickup Time:</strong> Today, 10:00 AM</p>
+                            <p><strong>Expected Delivery:</strong> Tomorrow, 3:00 PM</p>
+                            <p><strong>Special Instructions:</strong> Handle with care - delicate items</p>
+                            <p><strong>Rider Fee:</strong> ₱50.00</p>
+                        </div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button onclick="updateStatus(20, 'processing')" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; flex: 1; min-width: 150px;">
+                        <i class="fas fa-arrow-right"></i> Mark as Processing
+                    </button>
+                    <button onclick="sendNotification()" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; flex: 1; min-width: 150px;">
+                        <i class="fas fa-bell"></i> Notify Customer
+                    </button>
+                    <button onclick="printOrder()" style="background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%); color: white; padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; flex: 1; min-width: 150px;">
+                        <i class="fas fa-print"></i> Print Receipt
+                    </button>
                 </div>
             </div>
 
@@ -473,6 +513,16 @@ $recentOrders = $recentResult->fetch_all(MYSQLI_ASSOC);
         function viewDetails(orderId) {
             // In production, this would open an order details modal or page
             alert('Order #' + String(orderId).padStart(6, '0') + ' details would open here');
+        }
+
+        function sendNotification() {
+            alert('✓ Notification sent to customer Maria Santos!\n\nMessage: "Your order #000020 has been confirmed. We will pick up at 10:00 AM today."');
+        }
+
+        function printOrder() {
+            alert('🖨️ Printing order receipt for Order #000020...\n\nCustomer: Maria Santos\nService: Wash & Fold (3kg)\nAmount: ₱134.00\nDelivery Fee: ₱50.00\nTotal: ₱184.00');
+            // In production, this would open a print dialog
+            window.print();
         }
 
         // Search and filter functionality
