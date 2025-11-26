@@ -39,7 +39,7 @@ $totalAmount = $subtotal + $deliveryFee;
 
 $shopName = $cartData[0]['shop'] ?? 'Multiple Shops';
 
-$stmt = $conn->prepare("INSERT INTO orders (customer_id, shop_name, service_type, total_amount, payment_method, notes, status, created_at) VALUES (?, ?, ?, ?, ?, ?, 'pending', NOW())");
+$stmt = $conn->prepare("INSERT INTO orders (customer_id, customer_name, customer_email, customer_phone, customer_address, shop_name, service_type, total_amount, payment_method, notes, status, payment_status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'pending', NOW())");
 
 if (!$stmt) {
     echo json_encode(['success' => false, 'message' => 'Database error: ' . $conn->error]);
@@ -47,7 +47,7 @@ if (!$stmt) {
 }
 
 $services = implode(', ', $serviceList);
-$deliveryNote = 'Rider Pickup & Delivery: ₱' . $deliveryFee . ' | Address: ' . $customerAddress . ' | ' . $specialInstructions;
+$deliveryNote = 'Rider Pickup & Delivery: ₱' . $deliveryFee . ' | Special Instructions: ' . $specialInstructions;
 $paymentMethodLabel = match($paymentMethod) {
     'gcash' => 'GCash',
     'paymaya' => 'PayMaya',
@@ -55,10 +55,13 @@ $paymentMethodLabel = match($paymentMethod) {
     'cod' => 'Cash on Delivery',
     default => 'GCash'
 };
-$paymentMethodLabel .= ' (Pay after service provider confirms)';
 
-$stmt->bind_param('issdss', 
+$stmt->bind_param('issssssdss', 
     $_SESSION['user_id'],
+    $customerName,
+    $customerEmail,
+    $customerPhone,
+    $customerAddress,
     $shopName,
     $services,
     $totalAmount,

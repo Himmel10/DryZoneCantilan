@@ -244,12 +244,20 @@ $orders = $stmt->get_result();
                                     <span class="detail-value"><?php echo htmlspecialchars($order['service_type']); ?></span>
                                 </div>
                                 <div class="detail-item">
-                                    <span class="detail-label">Total Amount</span>
-                                    <span class="detail-value">₱<?php echo number_format($order['total_amount'], 2); ?></span>
+                                    <span class="detail-label">Delivery Address</span>
+                                    <span class="detail-value"><?php echo htmlspecialchars($order['customer_address'] ?? 'N/A'); ?></span>
                                 </div>
                                 <div class="detail-item">
-                                    <span class="detail-label">Delivery Option</span>
-                                    <span class="detail-value"><?php echo htmlspecialchars(ucfirst($order['delivery_option'] ?? 'pickup')); ?></span>
+                                    <span class="detail-label">Contact Phone</span>
+                                    <span class="detail-value"><?php echo htmlspecialchars($order['customer_phone'] ?? 'N/A'); ?></span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Payment Method</span>
+                                    <span class="detail-value"><?php echo htmlspecialchars($order['payment_method'] ?? 'N/A'); ?></span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Total Amount</span>
+                                    <span class="detail-value">₱<?php echo number_format($order['total_amount'], 2); ?></span>
                                 </div>
                                 <div class="detail-item">
                                     <span class="detail-label">Order Date</span>
@@ -259,15 +267,8 @@ $orders = $stmt->get_result();
                                 </div>
                                 <?php if (!empty($order['notes'])): ?>
                                 <div class="detail-item">
-                                    <span class="detail-label">Notes</span>
+                                    <span class="detail-label">Order Notes</span>
                                     <span class="detail-value"><?php echo htmlspecialchars($order['notes']); ?></span>
-                                </div>
-                                <?php endif; ?>
-                                <?php if ($order['total_amount']): ?>
-                                <div class="detail-item">
-                                    <span class="detail-label">Estimated Amount</span>
-                                    <span class="detail-value" style="font-weight: 700; color: var(--primary);">₱<?php echo number_format($order['total_amount'], 2); ?></span>
-                                    <small style="display: block; color: var(--medium); margin-top: 4px;"><i class="fas fa-info-circle"></i> Final amount will be confirmed upon pickup/delivery after weighing</small>
                                 </div>
                                 <?php endif; ?>
                             </div>

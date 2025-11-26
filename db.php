@@ -122,6 +122,20 @@ if (!$conn->connect_error) {
             $conn->query($alterSql);
         }
         
+        // Check if customer_name, customer_email, customer_phone, customer_address columns exist
+        $requiredColumns = ['customer_name', 'customer_email', 'customer_phone', 'customer_address'];
+        foreach ($requiredColumns as $col) {
+            $checkColumn = $conn->query("SHOW COLUMNS FROM `orders` LIKE '$col'");
+            if (!$checkColumn || $checkColumn->num_rows == 0) {
+                if ($col === 'customer_address') {
+                    $alterSql = "ALTER TABLE `orders` ADD COLUMN `$col` text";
+                } else {
+                    $alterSql = "ALTER TABLE `orders` ADD COLUMN `$col` varchar(255)";
+                }
+                $conn->query($alterSql);
+            }
+        }
+        
         // Check if customer_id exists, rename from user_id if needed
         $checkColumn = $conn->query("SHOW COLUMNS FROM `orders` LIKE 'customer_id'");
         if (!$checkColumn || $checkColumn->num_rows == 0) {
